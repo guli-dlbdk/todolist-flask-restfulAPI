@@ -1,39 +1,39 @@
 from flask import Flask
 from app import app
-from flask_restful import Resource, Api, reqparse, abort
+from flask_restful import Resource, Api, reqparse
 
 
 app = Flask(__name__)
 api = Api(app)
 
-TODOS = {
-'todo1': {'task': 'build an API'},
-'todo2': {'task': '?????'},
-'todo3': {'task': 'profit!'},
+todo = {
+'todo': {'task': 'build an API'},
+'todo': {'task': '?????'},
+'todo': {'task': 'profit!'},
 }
 
 
 
 class Todo(Resource):
 	def get(self, todo_id):
-		abort_if_todo_doesnt_exist(todo_id)
-		return TODOS[todo_id]
+		todo_exist(todo_id)
+		return todo[todo_id]
 
-def delete(self, todo_id):
-	abort_if_todo_doesnt_exist(todo_id)
-	del TODOS[todo_id]
-	return '', 204
+	def delete(self, todo_id):
+		todo_exist(todo_id)
+		del TODOS[todo_id]
+		return '', 204
 
-def put(self, todo_id):
-	args = parser.parse_args()
-	task = {'task': args['task']}
-	TODOS[todo_id] = task
-	return task, 201
+	def put(self, todo_id):
+		args = parser.parse_args()
+		task = {'task': args['task']}
+		TODOS[todo_id] = task
+		return task, 201
 
 
 
-if __name__ == '__main__':
-app.run(debug=True)
+	if __name__ == '__main__':
+	app.run(debug=True)
 
 
 

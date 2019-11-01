@@ -1,67 +1,62 @@
-
-from flask import Flask
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker, scoped_session
 from sqlalchemy import create_engine
-from sqlalchemy import SQLAlchemy
+from flask import Flask,render_template
 
 
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'v$\x0c11\xbcB\x89\\\xc3$%\x8d\x06\xb2\x82\x0b\xaa\xf5#\x179\xe23'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.db' 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
 
 Base = declarative_base()
 
 
-
-class Users(Base):
+class User(Base):
 	__tablename__ = 'users'
 
-	id = Column(Integer, primary_key=True)
+	id = Column(Integer, primary_key=True, nullable=False)
 	name = Column(String(20), nullable=False)
 	email = Column(String(30), nullable=False)
 	password = Column(String(8), nullable=False)
 
 	def to_dict(self):
 
-		return { 
-    			'id': self.id,
+        return {'id': self.id,
                 'name': self.name,
-                'email': self.email
-                }
+                'email': self.email}
 
 
-
-class Todos(Base):
+class Todo(Base):
 	__tablename__ = 'todos'
 
-	id = Column(Integer, primary_key=True)
+	id = Column(Integer, primary_key=True, nullable=False)
 	name = Column(String(20), nullable=False)
-	content = Column(String(40))
-	checked = Column(Boolean, nullable=True, default=0)
+	content = Column(String(40), nullable=False)
+	checked = Column(Boolean, nullable=True, default=False)
 	due_date = Column(DateTime(), nullable=False)
-	user_id = Column(Integer, ForeignKey('users.id'))
+	user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     user = relationship(Users)
 
     def to_dict(self):
 
-    	return { 
-    			'id': self.id,
-                'name': self.name,
-                'content': self.content,
-                'checked': self.checked,
+        return {'id': self.id,
+                'description': self.description,
+                'detail': self.detail,
                 'due_date': self.due_date,
+                'checked': self.checked,
                 'user_id': self.user_id
                 }
-	
 
 
-engine = create_engine(SQLALCHEMY_DATABASE_URI)
+
+'''engine = create_engine('sqlite:///'+'todo.db', echo = True)
+Session = sessionmaker(bind = engine)
+Base.metadata.create_all(engine)
+'''
+engine = create_engine('sqlite:///' + 'todo.db', echo=True)
 DBSession = scoped_session(sessionmaker(bind=engine))
 Base.metadata.bind = engine
 Base.metadata.create_all(engine)
+
+
+
 
