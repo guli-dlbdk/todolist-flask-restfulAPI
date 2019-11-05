@@ -1,46 +1,33 @@
-from flask import Flask, jsonify, request, Response
+from flask import Flask, Blueprint, request, abort
+from flask_restful import Api, Resource
 from datetime import datetime
 import json
+from app.modules.todos import (get_todo, get_todos, update_todo, delete_todo)
+from app.data_schemas import (TODO_SCHEMA, DELETE_TODO_SCHEMA)
+from schema import SchemaError
 
 
 
-app = Flask(__name__)
 
-todos = [
-		
-   {
-    'id': 1,
-    'name': 'Alısveris',
-    'content': 'Yapılması gereken alısverisler',
-    'due_date': datetime(2019,5,1)
+api_bp = Blueprint('todo_record_api', __name__)
+api = Api(api_bp)
 
-    },
+class TodoResource(Resource):
 
-  {
-	'id': 2,
-    'name': 'Toplantı',
-    'content': '12 de toplantı yapılacak.',
-    'due_date': datetime(2019,4,10)
+	#GET /todo-todos
+	def get(self):
+		todo_id = request.args.get('id')
+		if todo_id:
+			todo = get_todo(todo_id)
+			return {'status': 'OK',
+					'todo': todo}
 
-    },
+		todos = get_todos()
+		if not todos:
+			abort(404)
+		return {'status': 'OK',
+				'todos': list(todos)}
 
-  {
-    'id': 3,
-    'name': 'Sinema',
-    'content': 'Salı sinemaya gidilecek',
-    'due_date': datetime(2019,8,11)
-         
-    }
-]
-
-DEFAULT_PAGE_LIMIT = 5
-
-class Todo(Resource):
-
-	#GET /todos
-	@app.route('/todos')
-	def get_todos():
-		return jsonify({'todos': todos})
 
 
 	#POST /todos
@@ -51,55 +38,28 @@ class Todo(Resource):
 	#  'due_date': datetime(2020,8,20)            
 	#}
 
-
-	def validTodoObject(todoObject):
-		if ("id" in todoObject and "name" in todoObject and "content" in todoObject and "due_date" in todoObject):
-			return True
-		else:
-			return False
-
-
-	#/todos/id
-
-	@app.route('/todos', methods=['POST'])
-	def add_todo():
+	def post(self):
 		request_data = request.get_json()
-		if(validTodoObject(request_data)):
+		print ('request', request_data)
+		if(TODO_SCHEMA.validate(request_data)):
+			print('schema doğrulandı')
 			new_todo = {
-				"id": request_data['id'],
-				"name": request_data['name'],
-				"content": request_data['content'],
-				"due_date": request_data['due_date']
+				'title': request_data['title'],
+				'content': request_data['content'],
+				'due_date': request_data['due_date'],
+				'checked': request_data['checked']
 			}
-			todos.insert(0, new_todo)
-			response = Response("",201, mimetype='application/json')
-			response.headers['Location'] = "/todos/" + str(new_todo['id'])
-			return response
+			
+			todo = create_todo(new_todo)
+			return {'status': 'OK',
+					'todo': todo }
 		else:
-			invalidTodoObjectErrorMsg = {
-				"error": "Invalid todo object passed in request",
-				"helpString": "Data passed in similar to this { 'id': 5, 'name':'Toplantı', 'content': 'Salı toplantı yapılacak', 'due_date':'2020,3,18' }"
-			}
-
-			response = Response(json.dumps(invalidTodoObjectErrorMsg), status=400, mimetype='application/json');
-			return response
+			return {'status': 'Error',
+					'message':'schema error'}
 
 
 
-	#GET /todos/id
-	@app.route('/todos/<int:id>')
-	def get_todo_by_id(id):
-		return_value = {}
-		for todo in todos:
-			if todo["id"] == id:
-				return_value = {
-					'name':todo["name"],
-					'content':todo["content"]
-				}
-		response = Response(status=404)
-		return response
-
-
+	
 
 	#PUT /todos/id
 	#{
@@ -108,41 +68,17 @@ class Todo(Resource):
 	# 'due_date': '2030,3,5'
 	#}
 
-	def valid_put_request_data(request_data):
-		if("id" in request_data and "name" in request_data 
-			and "content" in request_data and "due_date" in request_data):
-			return True
-		else:
-			return False
-
-
-	@app.route('/todos/<int:id>', methods=['PUT'])
-	def replace_todo(id):
+	def put(self):
 		request_data = request.get_json()
-		if(not valid_put_request_data(request_data)):
-			invalidTodoObjectErrorMsg = {
-				"error": "Invalid todo object passed in request",
-				"helpString": "Data passed in similar to this { 'id': 5, 'name':'Toplantı', 'content': 'Salı toplantı yapılacak', 'due_date':'2020,3,18' }"
-			}
+		if(not TODO_SCHEMA(request_data)):
+			return {'status': 'error',
+					'message': 'Missing or incorrect parameters'}
 
-		response = Response(json.dumps(invalidTodoObjectErrorMsg), status=400, mimetype='application/json');
-		return response
+		update_todo = update_todo(request_data)
+		return {'status': 'OK',
+				'update_todo': update_todo}
 
-		new_todo = {
-			'id':id,
-			'name': request_data['name'],
-			'content': request_data['content'],
-			'due_date': request_data['due_date']
-		}
 
-		i = 0
-		for todo in todos:
-			currentId =todo["id"]
-			if currentId == id:
-				todos[i] = new_todo
-			i += 1
-		response = Response("", status=204)
-		return response
 
 
 
@@ -156,40 +92,33 @@ class Todo(Resource):
 	# 'due_date': '2020,4,8'
 	#}
 
+	# def patch(self):
+	# 	request_data = request.get_json()
+	# 	updated_todo = {}
+	# 	if(request_data['title']):
+	# 		updated_todo['title'] = request_data['title']
+	# 	if(request_data['due_date']):
+	# 		updated_todo['due_date'] = request_data['due_date']
+	# 	for todo in todos:
+	# 		if todo['id'] == request_data['id']
+	# 			todo.update(updated_todo)
+	# 	return {'status': 'OK',
+ #                'update_todo': updated_todo}
 
-	@app.route('/todos/<int:id>', methods=['PATCH'])
-	def update_todo(id):
-		request_data = request.get_json()
-		updated_todo = {}
-		if("name" in request_data):
-			updated_todo["name"] = request_data["name"]
-		if("due_date" in request_data):
-			updated_todo["due_date"] = request_data["due_date"]
-		for todo in todos:
-			if todo["id"] == id:
-				todo.update(updated_todo)
-		response = Response("", status=204)
-		response.headers['Location'] = "/todos/" + str(id)
-		return response
-
-
+		
 
 
 
 	#DELETE /todos/id
 	#Body :{'name':'test'}
-
-	@app.route('/todos/<int:id>', methods=['DELETE'])
-	def delete_todo(id):
-		i = 0
-		for todo in todos:
-			if todo["id"] == id:
-				todos.pop(i)
-			i += 1
-		return "";
+	def delete(id):
+		todo_id = request.args.get('id')
+		todo = delete_todo(todo_id)
+		return {'status': 'OK',
+				'message': 'Todo was deleted'}
 
 
 
 
 
-api.add_resource(Todo, '/api/todo')
+api.add_resource(TodoResource, '/api/todo')
