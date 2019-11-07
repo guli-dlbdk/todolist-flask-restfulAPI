@@ -54,7 +54,7 @@ class UserResource(Resource):
 		else:
 			deleted_user = delete_user(user_id)
 			return {'status': 'OK',
-					'message': 'Todo was deleted'}
+					'message': 'User was deleted'}
 
 
 	

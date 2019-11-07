@@ -2,7 +2,7 @@ from flask import Flask, Blueprint, request, abort
 from flask_restful import Api, Resource
 import json
 from app.modules.todos import (get_todo, get_todos, create_todo, update_todo, delete_todo)
-from app.data_schemas import (TODO_SCHEMA)
+from app.data_schemas import (TODO_SCHEMA, TODO_UPDATE_SCHEMA)
 from schema import SchemaError
 
 
@@ -15,12 +15,12 @@ class TodoResource(Resource):
 
 	def get(self):
 		todo_id = request.args.get('id')
-		print('todo_id:', todo_id)
+		#print('todo_id:', todo_id)
 		if not todo_id:
 			todos = get_todos()
 			if not todos:
 				return {'status': 'error',
-						'message': 'todo list boş'}	
+						'message': 'todo list boş'}
 			else:
 				return {'status': 'OK',
 						'todos': todos}
@@ -48,16 +48,16 @@ class TodoResource(Resource):
 
 
 		
-#put çalışmıyor  bakılacak
+# #put çalışmıyor  bakılacak
 	def put(self):
 		request_data = request.get_json()
-		if(not TODO_SCHEMA.validate(request_data)):
-			return {'status': 'error',
-					'message': 'Missing or incorrect parameters'}
-
+		if(not TODO_UPDATE_SCHEMA.validate(request_data)):
+			return {'status': 'error'}
+		todo_id = request.args.get('id')
+		request_data['id'] = todo_id
 		updated_todo = update_todo(request_data)
 		return {'status': 'OK',
-				'update_todo': update_todo}
+				'update_todo': updated_todo}
 		
 	
 

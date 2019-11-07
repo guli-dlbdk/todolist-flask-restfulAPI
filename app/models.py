@@ -32,7 +32,7 @@ class Todo(Base):
     checked = Column(Boolean(), default=False)
     due_date = Column(String())
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
+    user = relationship('User', backref='user', cascade='delete-orphan, delete', single_parent=True)
 
     def to_dict(self):
         return {'id': self.id,

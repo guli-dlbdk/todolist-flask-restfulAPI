@@ -58,14 +58,14 @@ def update_todo(data):
 	if not todo:
 		result = {'messages': 'Todo not found'}
 	else:
-		todo.title = data['title'] 
+		todo.title = data['title']
 		todo.content = data['content']
 		todo.due_date = data['due_date']
 		todo.checked = data['checked']
-	
+		result = [todo.to_dict()]
+
 		db_session.commit()
 		db_session.close()
-		result = [todo.to_dict()]
 	return result
 
 

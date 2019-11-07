@@ -17,4 +17,11 @@ TODO_SCHEMA = Schema({
 
 	})
 
+TODO_UPDATE_SCHEMA = Schema({
+	'title': Use(str),
+	'content': Use(str),
+	'due_date': Use(str),
+	'checked': bool,
+	})
+
 
