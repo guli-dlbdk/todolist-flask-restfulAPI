@@ -1,2 +1,8 @@
-~
-**/__pycache__/
+*~
+*.sw?
+*.log
+*.pyc
+*.db
+*__pycache__/
+*.rdb
+*library/*
