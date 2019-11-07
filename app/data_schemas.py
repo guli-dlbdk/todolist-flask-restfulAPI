@@ -1,13 +1,20 @@
 from schema import Schema, Use
 
+
+USER_SCHEMA = Schema({
+	'username': Use(str),
+	'email': Use(str),
+	'password': Use(str),
+	})
+
+
 TODO_SCHEMA = Schema({
-    'title': Use(str),
-    'content': Use(str),
-    'due_date': Use(str),
-    'checked': Use(str),
+	'title': Use(str),
+	'content': Use(str),
+	'due_date': Use(str),
+	'checked': bool,
+	'user_id': int,
+
 	})
 
 
-DELETE_TODO_SCHEMA = Schema({
-	'id': Use(int),
-	})
