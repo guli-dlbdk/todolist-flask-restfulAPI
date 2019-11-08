@@ -1,7 +1,7 @@
 from flask import Flask, Blueprint, request, abort
 from flask_restful import Api, Resource
 import json
-from app.modules.todos import (get_todo, get_todos, create_todo, update_todo, delete_todo)
+from app.modules.todos import (get_todos, get_todo, user_todos, create_todo, update_todo, delete_todo)
 from app.data_schemas import (TODO_SCHEMA, TODO_UPDATE_SCHEMA)
 from schema import SchemaError
 
@@ -14,22 +14,22 @@ api = Api(api_bp)
 class TodoResource(Resource):
 
 	def get(self):
-		todo_id = request.args.get('id')
-		#print('todo_id:', todo_id)
-		if not todo_id:
+		todo_id = request.args.get('id', None)
+		user_id = request.args.get('user_id', None)
+		print('todo_id:', todo_id)
+		print('user_id:', user_id)
+		if todo_id:
 			todos = get_todos()
 			if not todos:
-				return {'status': 'error',
-						'message': 'todo list boş'}
-			else:
-				return {'status': 'OK',
-						'todos': todos}
-		todo = get_todo(todo_id)
-		if not todo:
-			return {'status': 'error',
-					'message': 'todo listede yok'}
-
-		return {'todos': todo}
+				return {'message': 'TodoList boş'}
+			todo = get_todo(todo_id)
+			if not todo:
+				return {'message': 'Todo listede yok'} 
+			return {'todo': todo}
+		result = user_todos(user_id)
+		if not result:
+			return {'message': 'User Todo yok'}
+		return {'todos': result}
 
 
 
@@ -47,17 +47,22 @@ class TodoResource(Resource):
 					'todo': todo}
 
 
-		
-# #put çalışmıyor  bakılacak
+
 	def put(self):
 		request_data = request.get_json()
 		if(not TODO_UPDATE_SCHEMA.validate(request_data)):
 			return {'status': 'error'}
-		todo_id = request.args.get('id')
+		todo_id = request.args.get('id', None)
+
+		print('update id:', todo_id)
+
+		if not todo_id:
+			return {'message': 'todo id yok'}
 		request_data['id'] = todo_id
 		updated_todo = update_todo(request_data)
 		return {'status': 'OK',
-				'update_todo': updated_todo}
+		'update_todo': updated_todo}
+		
 		
 	
 

@@ -22,8 +22,6 @@ class User(Base):
                 'email': self.email }
 
 
-
-
 class Todo(Base):
     __tablename__ = 'todo'
     id = Column(Integer, primary_key=True)
@@ -32,7 +30,9 @@ class Todo(Base):
     checked = Column(Boolean(), default=False)
     due_date = Column(String())
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship('User', backref='user', cascade='delete-orphan, delete', single_parent=True)
+    user = relationship('User', backref='user', cascade='all, delete, delete-orphan',
+                        order_by='desc(User.id)', single_parent=True)
+
 
     def to_dict(self):
         return {'id': self.id,
@@ -40,8 +40,10 @@ class Todo(Base):
                 'content': self.content,
                 'due_date': self.due_date,
                 'checked': self.checked,
-                'user_id': self.user_id 
+                'user_id': self.user_id
                 }
+
+                
 
 engine = create_engine('sqlite:///' + 'todo.db')
 DBSession = scoped_session(sessionmaker(bind=engine))

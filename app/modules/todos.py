@@ -8,37 +8,50 @@ from app.models import DBSession,Todo, User
 def get_todos():
 	db_session = DBSession()
 	todos = db_session.query(Todo).all()
+	if not todos:
+		result = {'message': 'todolist boş'}
 	result = [d.to_dict() for d in todos]
-
-	if not result:
-		return {'message': 'todolist boş'}
 	db_session.close()
-	return {'todos': result}
+	return result
 
 
 
 
 def get_todo(todo_id):
 	if not todo_id:
-		return {'status': 'Error'}
+		result = {'status': 'error'}
 	else:
 		db_session = DBSession()
-		todo = db_session.query(Todo).filter(Todo.id == todo_id).all()
+		todo = db_session.query(Todo).filter(Todo.id == todo_id).first()
 		if not todo:
-			return {'message': 'todo listede yok'}
+			result = {'message': 'todo listede yok'}
 		else:
-			result = [d.to_dict() for d in todo]
+			result = [todo.to_dict()]
 		db_session.close()
-		return {'todo': result}
+	return result
 
+
+
+
+def user_todos(user_id):
+	if not user_id:
+		result = {'status': 'Error'}
+	else:
+		db_session = DBSession()
+		user_todos = db_session.query(Todo).filter(Todo.user_id == user_id).all()
+		if not user_todos:
+			result = {'message': 'User a ait bir todo yok'}
+		result = [d.to_dict() for d in user_todos]
+		db_session.close()
+	return result
 
 
 
 def create_todo(data):
 	
 	db_session = DBSession()
-	new_todo = Todo(title=data['title'], content=data['content'], 
-					due_date=data['due_date'], checked=data['checked'], user_id=data['user_id'])
+	new_todo = Todo(title=data['title'], content=data['content'], due_date=data['due_date'],
+					checked=data['checked'], user_id=data['user_id'])
 
 	db_session.add(new_todo)
 	db_session.commit()
@@ -46,12 +59,12 @@ def create_todo(data):
 	new_todo = new_todo.to_dict()
 
 	db_session.close()
+	print('todo oluşturuldu.', new_todo['id'])
 	return new_todo
 
 
 
 
-#todo yeniden yazılacak
 def update_todo(data):
 	db_session = DBSession()
 	todo = db_session.query(Todo).filter(Todo.id == data['id']).first()
@@ -62,11 +75,13 @@ def update_todo(data):
 		todo.content = data['content']
 		todo.due_date = data['due_date']
 		todo.checked = data['checked']
-		result = [todo.to_dict()]
-
 		db_session.commit()
 		db_session.close()
+		result = {'message': 'todo güncellendi.'}
+
 	return result
+
+
 
 
 def delete_todo(todo_id):

@@ -7,6 +7,11 @@ USER_SCHEMA = Schema({
 	'password': Use(str),
 	})
 
+AUTH_SCHEMA = Schema({
+	'email': Use(str),
+	'password': Use(str),
+	})
+
 
 TODO_SCHEMA = Schema({
 	'title': Use(str),
@@ -23,5 +28,7 @@ TODO_UPDATE_SCHEMA = Schema({
 	'due_date': Use(str),
 	'checked': bool,
 	})
+
+
 
 

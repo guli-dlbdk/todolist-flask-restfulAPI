@@ -20,6 +20,7 @@ def create_user(data):
 		db_session.rollback()
 		result = {'status': 'error'}
 	db_session.close()
+	print('user oluşturuldu')
 	return result
 
 
