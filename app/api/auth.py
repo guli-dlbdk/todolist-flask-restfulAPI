@@ -20,7 +20,7 @@ class AuthResource(Resource):
 		user = db_session.query(User).filter(User.email == request_data['email'], User.password == password).first()
 		if not user:
 			return {'message':'user bulunamadı'}
-		
+
 		return user.username
 
 
