@@ -7,7 +7,6 @@ from schema import SchemaError
 
 
 
-
 api_bp = Blueprint('user_record_api', __name__)
 api = Api(api_bp)
 
