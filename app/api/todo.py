@@ -61,7 +61,7 @@ class TodoResource(Resource):
 		request_data['id'] = todo_id
 		updated_todo = update_todo(request_data)
 		return {'status': 'OK',
-		'update_todo': updated_todo}
+		        'update_todo': updated_todo}
 		
 		
 	
